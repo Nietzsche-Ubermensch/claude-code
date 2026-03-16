@@ -4,6 +4,11 @@
 
 set -euo pipefail
 
+# ── JSON escape function ──────────────────────────────────────────────────────
+json_escape() {
+  printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g; s/	/\\t/g' | awk '{printf "%s\\n", $0}' | sed '$ s/\\n$//'
+}
+
 # ── Parse args ────────────────────────────────────────────────────────────────
 TITLE="Auto PR"
 BASE="main"
@@ -58,24 +63,37 @@ EXISTING=$(curl -sf \
 
 if [[ -n "$EXISTING" ]]; then
   echo "[INFO] PR #$EXISTING already exists — updating title"
+
+  # Build JSON with escaped strings
+  TITLE_ESC=$(json_escape "$TITLE")
+  BODY_ESC=$(json_escape "$BODY")
+  PAYLOAD="{\"title\":\"${TITLE_ESC}\",\"body\":\"${BODY_ESC}\"}"
+
   curl -sf -X PATCH \
     -H "Authorization: Bearer $TOKEN" \
     -H "Accept: application/vnd.github+json" \
     -H "Content-Type: application/json" \
     "https://api.github.com/repos/${REPO}/pulls/${EXISTING}" \
-    -d "{\"title\":\"${TITLE}\",\"body\":\"${BODY}\"}" > /dev/null
+    -d "$PAYLOAD" > /dev/null
   echo "[INFO] ✓ PR #$EXISTING updated"
   echo "[INFO] → https://github.com/${REPO}/pull/${EXISTING}"
   exit 0
 fi
 
 # ── Create PR ─────────────────────────────────────────────────────────────────
+# Build JSON with escaped strings
+TITLE_ESC=$(json_escape "$TITLE")
+BRANCH_ESC=$(json_escape "$BRANCH")
+BASE_ESC=$(json_escape "$BASE")
+BODY_ESC=$(json_escape "$BODY")
+PAYLOAD="{\"title\":\"${TITLE_ESC}\",\"head\":\"${BRANCH_ESC}\",\"base\":\"${BASE_ESC}\",\"body\":\"${BODY_ESC}\",\"draft\":${DRAFT}}"
+
 RESPONSE=$(curl -sf -X POST \
   -H "Authorization: Bearer $TOKEN" \
   -H "Accept: application/vnd.github+json" \
   -H "Content-Type: application/json" \
   "https://api.github.com/repos/${REPO}/pulls" \
-  -d "{\"title\":\"${TITLE}\",\"head\":\"${BRANCH}\",\"base\":\"${BASE}\",\"body\":\"${BODY}\",\"draft\":${DRAFT}}" \
+  -d "$PAYLOAD" \
   2>/dev/null)
 
 PR_URL=$(echo "$RESPONSE" | grep '"html_url"' | head -1 | sed 's/.*"html_url": "//; s/".*//')
