@@ -28,13 +28,15 @@ def status(repo):
         integration = ClaudeCodeIntegration(repo)
         context = integration.prepare_context()
 
-        console.print(Panel(
-            f"[bold cyan]Repository:[/bold cyan] {context['repository']}\n"
-            f"[bold cyan]Branch:[/bold cyan] {context['branch']}\n"
-            f"[bold cyan]Status:[/bold cyan] {'Clean' if context['is_clean'] else 'Modified'}",
-            title="Claude Code Status",
-            border_style="cyan"
-        ))
+        console.print(
+            Panel(
+                f"[bold cyan]Repository:[/bold cyan] {context['repository']}\n"
+                f"[bold cyan]Branch:[/bold cyan] {context['branch']}\n"
+                f"[bold cyan]Status:[/bold cyan] {'Clean' if context['is_clean'] else 'Modified'}",
+                title="Claude Code Status",
+                border_style="cyan",
+            )
+        )
 
         # Show modified files
         if context['status']['modified']:
@@ -62,11 +64,15 @@ def status(repo):
             table.add_column("Message")
             table.add_column("Author", style="cyan")
 
-            for commit in context['recent_commits']:
+            for commit in context["recent_commits"]:
                 table.add_row(
-                    commit['sha'],
-                    commit['message'][:50] + "..." if len(commit['message']) > 50 else commit['message'],
-                    commit['author']
+                    commit["sha"],
+                    (
+                        commit["message"][:50] + "..."
+                        if len(commit["message"]) > 50
+                        else commit["message"]
+                    ),
+                    commit["author"],
                 )
 
             console.print(table)
@@ -98,7 +104,7 @@ def commit(files, message, repo):
     """Commit changes with Claude Code assistance."""
     try:
         integration = ClaudeCodeIntegration(repo)
-        
+
         if not files:
             # Get all modified and staged files
             files = integration.get_files_for_review()
@@ -107,14 +113,16 @@ def commit(files, message, repo):
                 return
 
         result = integration.assist_commit(list(files) if files else None, message)
-        
-        console.print(Panel(
-            f"[bold green]Commit:[/bold green] {result['sha']}\n"
-            f"[bold green]Branch:[/bold green] {result['branch']}\n"
-            f"[bold green]Message:[/bold green] {result['message']}",
-            title="✓ Committed Successfully",
-            border_style="green"
-        ))
+
+        console.print(
+            Panel(
+                f"[bold green]Commit:[/bold green] {result['sha']}\n"
+                f"[bold green]Branch:[/bold green] {result['branch']}\n"
+                f"[bold green]Message:[/bold green] {result['message']}",
+                title="✓ Committed Successfully",
+                border_style="green",
+            )
+        )
 
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}", style="red")
@@ -162,17 +170,19 @@ def context(file_path, repo):
             status_parts.append("[green]staged[/green]")
         if ctx.get("untracked"):
             status_parts.append("[red]untracked[/red]")
-        
+
         status_str = ", ".join(status_parts) if status_parts else "[cyan]unchanged[/cyan]"
 
-        console.print(Panel(
-            f"[bold cyan]Path:[/bold cyan] {ctx['path']}\n"
-            f"[bold cyan]Size:[/bold cyan] {ctx['size']} bytes\n"
-            f"[bold cyan]Extension:[/bold cyan] {ctx['extension']}\n"
-            f"[bold cyan]Status:[/bold cyan] {status_str}",
-            title="File Context",
-            border_style="cyan"
-        ))
+        console.print(
+            Panel(
+                f"[bold cyan]Path:[/bold cyan] {ctx['path']}\n"
+                f"[bold cyan]Size:[/bold cyan] {ctx['size']} bytes\n"
+                f"[bold cyan]Extension:[/bold cyan] {ctx['extension']}\n"
+                f"[bold cyan]Status:[/bold cyan] {status_str}",
+                title="File Context",
+                border_style="cyan",
+            )
+        )
 
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}", style="red")
@@ -186,12 +196,14 @@ def suggest(repo):
     try:
         integration = ClaudeCodeIntegration(repo)
         message = integration.generate_commit_message()
-        
-        console.print(Panel(
-            message,
-            title="Suggested Commit Message",
-            border_style="green"
-        ))
+
+        console.print(
+            Panel(
+                message,
+                title="Suggested Commit Message",
+                border_style="green",
+            )
+        )
 
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}", style="red")

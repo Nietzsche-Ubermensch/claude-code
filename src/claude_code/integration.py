@@ -82,8 +82,9 @@ class ClaudeCodeIntegration:
         self.git.create_branch(branch_name, checkout=True)
         return branch_name
 
-    def assist_commit(self, files: Optional[List[str]] = None, 
-                     message: Optional[str] = None) -> Dict[str, str]:
+    def assist_commit(
+        self, files: Optional[List[str]] = None, message: Optional[str] = None
+    ) -> Dict[str, str]:
         """
         Assist with committing changes using Claude Code suggestions.
 
