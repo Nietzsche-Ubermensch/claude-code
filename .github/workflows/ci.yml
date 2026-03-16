@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Test on Python ${{ matrix.python-version }}
@@ -14,49 +21,30 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ['3.9', '3.10', '3.11']
-
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: false
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-
-    - name: Install dependencies
+    - name: Install
       run: |
-        python -m pip install --upgrade pip
-        pip install pytest gitpython pyyaml click rich || true
+        pip install pytest gitpython pyyaml click rich 2>/dev/null || true
         pip install -e ".[dev]" 2>/dev/null || true
-
-    - name: Run tests
-      run: |
-        if [ -d tests ]; then
-          pytest tests/ -v --tb=short || true
-        else
-          echo "No tests directory found - skipping"
-        fi
+    - name: Test
+      run: pytest tests/ -v --tb=short 2>/dev/null || echo 'tests done'
 
   lint:
-    name: Code Quality Checks
+    name: Lint
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: false
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-
-    - name: Install linting tools
-      run: pip install black flake8
-
-    - name: Black
-      run: black --check src/ tests/ 2>/dev/null || true
-
-    - name: Flake8
-      run: flake8 src/ tests/ --max-line-length=100 --ignore=E203,W503 2>/dev/null || true
+    - run: pip install black flake8
+    - run: black --check src/ tests/ 2>/dev/null || true
+    - run: flake8 src/ tests/ --max-line-length=100 --ignore=E203,W503 2>/dev/null || true
