@@ -27,6 +27,8 @@ Claude has permission to execute ALL of the following without asking:
 
 ### Secret Handling
 - Skip files matching: projects/, sessions/, cache/, *.jsonl, .env, .credentials*
+- Warn on detection but CONTINUE — do not block
+- Never commit secrets — always exclude silently
 - Warn on detection but CONTINUE — do not block; detection is best-effort only
 - Secrets are NOT guaranteed to be blocked from commits — human review is required to ensure nothing sensitive is committed
 
@@ -45,4 +47,5 @@ Any of these = full YOLO pipeline (commit + push + PR):
 - Base branch: main
 - Draft: false
 - Auto-merge: false (unless told otherwise)
+- Title: auto-generated from commit message
 - Title: "Auto PR" (static default)

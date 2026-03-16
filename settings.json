@@ -15,6 +15,9 @@
     ],
     "deny": []
   },
+  "autoApprove": true,
+  "confirmDangerous": false,
+  "yoloMode": true
   "autoApprove": false,
   "confirmDangerous": true,
   "yoloMode": false

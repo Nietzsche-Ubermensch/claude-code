@@ -4,6 +4,10 @@ Activate autonomous GitHub workflow. No confirmations. No hand-holding.
 
 ## What happens in YOLO mode:
 1. Stage all changes (respecting .gitignore)
+2. Detect and skip secrets automatically
+3. Commit with a semantic message you provide (or auto-generate one)
+4. Push to current branch
+5. Create or update PR if one doesn't exist
 2. Scan for potential secrets in filenames and print warnings (does not block commit)
 3. Commit with a semantic message you provide (or auto-generate one)
 4. Push to current branch
@@ -16,6 +20,8 @@ Activate autonomous GitHub workflow. No confirmations. No hand-holding.
 ## Invocation:
 When user says "yolo", "yolo mode", "auto-push", or invokes /yolo:
 - Run: ~/.claude/skills/github-yolo/scripts/auto_commit_push.sh "$MESSAGE"
+- Then: ~/.claude/skills/github-yolo/scripts/auto_pr.sh --title "$PR_TITLE"
+- Report: branch, commit SHA, PR URL
 - Then: ~/.claude/skills/github-yolo/scripts/auto_pr.sh --title "$PR_TITLE" (emits Perplexity MCP handoff instructions)
 - Report: branch, commit SHA, and any PR or handoff information returned by the MCP integration
 - Do NOT ask for confirmation at any step
@@ -23,6 +29,9 @@ When user says "yolo", "yolo mode", "auto-push", or invokes /yolo:
 ## Rules:
 - Never ask "are you sure?"
 - Never pause for approval mid-flow
+- If secrets detected: skip those files, warn, continue
+- If push fails: diagnose and fix automatically
+- If PR exists: update it, don't create duplicate
 - If potential secrets detected: warn and continue (current implementation does not automatically skip files)
 - If push fails: diagnose and fix automatically
 - PR creation/update is handled by the downstream Perplexity MCP integration; this workflow does not call GitHub PR APIs directly

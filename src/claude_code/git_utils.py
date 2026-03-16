@@ -62,7 +62,7 @@ class GitManager:
         """
         if files:
             self.stage_files(files)
-        
+
         commit = self.repo.index.commit(message)
         return commit.hexsha
 
@@ -113,12 +113,14 @@ class GitManager:
         """
         commits = []
         for commit in self.repo.iter_commits(max_count=max_count):
-            commits.append({
-                "sha": commit.hexsha[:7],
-                "message": commit.message.strip(),
-                "author": str(commit.author),
-                "date": commit.committed_datetime.isoformat(),
-            })
+            commits.append(
+                {
+                    "sha": commit.hexsha[:7],
+                    "message": commit.message.strip(),
+                    "author": str(commit.author),
+                    "date": commit.committed_datetime.isoformat(),
+                }
+            )
         return commits
 
     def get_status(self) -> Dict[str, List[str]]:
