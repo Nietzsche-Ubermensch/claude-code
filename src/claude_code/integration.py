@@ -58,8 +58,12 @@ class ClaudeCodeIntegration:
         # Simple heuristic-based commit message generation
         # In a real implementation, this would use Claude's API
         lines = diff.split("\n")
-        added = sum(1 for line in lines if line.startswith("+") and not line.startswith("+++"))
-        removed = sum(1 for line in lines if line.startswith("-") and not line.startswith("---"))
+        added = sum(
+            1 for line in lines if line.startswith("+") and not line.startswith("+++")
+        )
+        removed = sum(
+            1 for line in lines if line.startswith("-") and not line.startswith("---")
+        )
 
         if added > removed:
             return f"Add changes ({added} additions, {removed} deletions)"
@@ -95,15 +99,12 @@ class ClaudeCodeIntegration:
         Returns:
             Dictionary with commit information.
         """
-        # Stage files if provided
         if files:
             self.git.stage_files(files)
 
-        # Generate message if not provided
         if message is None:
             message = self.generate_commit_message()
 
-        # Commit
         sha = self.git.commit(message)
 
         return {
@@ -144,7 +145,6 @@ class ClaudeCodeIntegration:
             "extension": full_path.suffix,
         }
 
-        # Check if file is modified
         status = self.git.get_status()
         context["modified"] = file_path in status["modified"]
         context["staged"] = file_path in status["staged"]
