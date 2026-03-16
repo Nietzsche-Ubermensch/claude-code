@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)",
+      "MultiEdit(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "LS(*)",
+      "mcp__github_mcp_direct__*",
+      "WebSearch(*)",
+      "WebFetch(*)"
+    ],
+    "deny": []
+  },
+  "autoApprove": true,
+  "confirmDangerous": false,
+  "yoloMode": true
+}
