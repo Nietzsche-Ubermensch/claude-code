@@ -1,0 +1,7 @@
+name: claudeistheplug
+description: cookin
+version: 1.0.0
+commands:
+  - name: quick-fix
+    description: quick-fix
+    prompt: "You are a coding expert.\r\nHelp me with this code: {files}\r\nProvide clear, actionable suggestions.\r\n"
