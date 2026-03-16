@@ -1,14 +1,93 @@
 #!/bin/bash
-# auto_pr.sh — pushes branch, PR created via Perplexity MCP
-TITLE="${2:-Auto PR}"
+# auto_pr.sh — Fully autonomous PR creation via GitHub API (no gh CLI needed)
+# Usage: auto_pr.sh --title "PR title" [--base main] [--draft]
+
+set -euo pipefail
+
+# ── Parse args ────────────────────────────────────────────────────────────────
+TITLE="Auto PR"
+BASE="main"
+DRAFT="false"
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --title) TITLE="$2"; shift 2 ;;
+    --base)  BASE="$2";  shift 2 ;;
+    --draft) DRAFT="true"; shift ;;
+    *) shift ;;
+  esac
+done
+
+# ── Detect repo + branch ──────────────────────────────────────────────────────
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 REMOTE_URL=$(git remote get-url origin)
-REPO=$(echo "$REMOTE_URL" | sed 's/.*github.com[:/]\(.*\)\.git/\1/')
+REPO=$(echo "$REMOTE_URL" | sed 's/.*github.com[:/]//; s/\.git$//')
 
-echo "[INFO] Branch: $BRANCH"
-echo "[INFO] Repo: $REPO"
-echo "[INFO] Title: $TITLE"
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  → Tell Perplexity: create PR \"$TITLE\""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "[INFO] YOLO Auto-PR"
+echo "[INFO] Branch : $BRANCH"
+echo "[INFO] Base   : $BASE"
+echo "[INFO] Repo   : $REPO"
+echo "[INFO] Title  : $TITLE"
+
+# ── Resolve GitHub token ──────────────────────────────────────────────────────
+TOKEN=""
+if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+  TOKEN="$GITHUB_TOKEN"
+elif command -v gh &>/dev/null; then
+  TOKEN=$(gh auth token 2>/dev/null || true)
+fi
+
+if [[ -z "$TOKEN" ]]; then
+  echo "[WARN] No GitHub token found. Set GITHUB_TOKEN env var or run: gh auth login"
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "  → Tell Perplexity: create PR \"$TITLE\""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  exit 0
+fi
+
+# ── Build PR body from commits ────────────────────────────────────────────────
+BODY=$(git log "${BASE}..${BRANCH}" --pretty=format:"- %s" 2>/dev/null | head -20 || echo "Auto-generated PR")
+
+# ── Check for existing PR ─────────────────────────────────────────────────────
+EXISTING=$(curl -sf \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  "https://api.github.com/repos/${REPO}/pulls?head=${BRANCH}&base=${BASE}&state=open" \
+  2>/dev/null | grep '"number"' | head -1 | grep -o '[0-9]*' || true)
+
+if [[ -n "$EXISTING" ]]; then
+  echo "[INFO] PR #$EXISTING already exists — updating title"
+  curl -sf -X PATCH \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Accept: application/vnd.github+json" \
+    -H "Content-Type: application/json" \
+    "https://api.github.com/repos/${REPO}/pulls/${EXISTING}" \
+    -d "{\"title\":\"${TITLE}\",\"body\":\"${BODY}\"}" > /dev/null
+  echo "[INFO] ✓ PR #$EXISTING updated"
+  echo "[INFO] → https://github.com/${REPO}/pull/${EXISTING}"
+  exit 0
+fi
+
+# ── Create PR ─────────────────────────────────────────────────────────────────
+RESPONSE=$(curl -sf -X POST \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Accept: application/vnd.github+json" \
+  -H "Content-Type: application/json" \
+  "https://api.github.com/repos/${REPO}/pulls" \
+  -d "{\"title\":\"${TITLE}\",\"head\":\"${BRANCH}\",\"base\":\"${BASE}\",\"body\":\"${BODY}\",\"draft\":${DRAFT}}" \
+  2>/dev/null)
+
+PR_URL=$(echo "$RESPONSE" | grep '"html_url"' | head -1 | sed 's/.*"html_url": "//; s/".*//')
+PR_NUM=$(echo "$RESPONSE" | grep '"number"' | head -1 | grep -o '[0-9]*')
+
+if [[ -n "$PR_URL" ]]; then
+  echo "[INFO] ✓ PR #${PR_NUM} created"
+  echo "[INFO] → $PR_URL"
+else
+  echo "[WARN] API call failed — falling back to Perplexity relay"
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "  → Tell Perplexity: create PR \"$TITLE\""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+fi
