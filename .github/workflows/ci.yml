@@ -1,10 +1,13 @@
 name: CI
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 on:
   push:
-    branches: [ main, 'copilot/**' ]
+    branches: [main, "copilot/**"]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -21,39 +24,39 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        python-version: ["3.9", "3.10", "3.11"]
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: false
-    - uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install
-      run: |
-        pip install pytest gitpython pyyaml click rich 2>/dev/null || true
-        pip install -e ".[dev]" 2>/dev/null || true
-    - name: Auto-lint (black)
-      run: |
-        pip install black 2>/dev/null || true
-        black src/ tests/ 2>/dev/null || true
-    - name: Test
-      run: pytest tests/ -v --tb=short 2>/dev/null || echo 'no failures'
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          pip install pytest gitpython pyyaml click rich 2>/dev/null || true
+          pip install -e ".[dev]" 2>/dev/null || true
+      - name: Auto-lint (black)
+        run: |
+          pip install black 2>/dev/null || true
+          black src/ tests/ 2>/dev/null || true
+      - name: Test
+        run: pytest tests/ -v --tb=short 2>/dev/null || echo 'no failures'
 
   quality:
     name: Quality (always green)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: false
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    - name: Lint report
-      run: |
-        pip install black flake8 2>/dev/null || true
-        echo '=== Black ===' && black --check src/ tests/ 2>/dev/null && echo 'PASS' || echo 'Auto-fixed on next push'
-        echo '=== Flake8 ===' && flake8 src/ tests/ --max-line-length=100 --ignore=E203,W503,E501 2>/dev/null || echo 'OK'
-    - name: Done
-      run: echo 'Quality checks complete'
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Lint report
+        run: |
+          pip install black flake8 2>/dev/null || true
+          echo '=== Black ===' && black --check src/ tests/ 2>/dev/null && echo 'PASS' || echo 'Auto-fixed on next push'
+          echo '=== Flake8 ===' && flake8 src/ tests/ --max-line-length=100 --ignore=E203,W503,E501 2>/dev/null || echo 'OK'
+      - name: Done
+        run: echo 'Quality checks complete'

@@ -1,10 +1,13 @@
 name: Security
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
@@ -14,24 +17,24 @@ jobs:
     name: Security (always green)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-      with:
-        submodules: false
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    - name: Dependency scan
-      run: |
-        pip install pip-audit 2>/dev/null || true
-        pip-audit --ignore-vuln GHSA-0000-0000-0000 2>/dev/null || echo 'Scan complete'
-    - name: Secret pattern check
-      run: |
-        echo 'Checking for exposed secrets...'
-        if git grep -rE '(ghp_[A-Za-z0-9]{36}|AKIA[A-Z0-9]{16}|sk-[a-zA-Z0-9]{48})' \
-          -- ':(exclude).git' ':(exclude)*.md' 2>/dev/null | grep -q .; then
-          echo 'WARNING: Possible secret pattern found - review immediately'
-        else
-          echo 'No secrets detected'
-        fi
-    - name: Done
-      run: echo 'Security scan complete'
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Dependency scan
+        run: |
+          pip install pip-audit 2>/dev/null || true
+          pip-audit --ignore-vuln GHSA-0000-0000-0000 2>/dev/null || echo 'Scan complete'
+      - name: Secret pattern check
+        run: |
+          echo 'Checking for exposed secrets...'
+          if git grep -rE '(ghp_[A-Za-z0-9]{36}|AKIA[A-Z0-9]{16}|sk-[a-zA-Z0-9]{48})' \
+            -- ':(exclude).git' ':(exclude)*.md' 2>/dev/null | grep -q .; then
+            echo 'WARNING: Possible secret pattern found - review immediately'
+          else
+            echo 'No secrets detected'
+          fi
+      - name: Done
+        run: echo 'Security scan complete'
