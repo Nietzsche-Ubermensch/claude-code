@@ -1,5 +1,7 @@
 # Claude-Code-Desktop
 
+[![Claude Code](https://github.com/Nietzsche-Ubermensch/claude-code/actions/workflows/claude.yml/badge.svg)](https://github.com/Nietzsche-Ubermensch/claude-code/actions/workflows/claude.yml)
+
 Claude Code integration for Git repositories - A powerful tool to enhance your Git workflow with AI-assisted coding.
 
 ## Overview
@@ -40,26 +42,31 @@ pip install claude-code-desktop
 ## Quick Start
 
 1. Navigate to your Git repository:
+
 ```bash
 cd your-project
 ```
 
 2. Check status with Claude context:
+
 ```bash
 claude-git status
 ```
 
 3. Create a new feature branch:
+
 ```bash
 claude-git branch my-feature
 ```
 
 4. Make your changes, then commit with assistance:
+
 ```bash
 claude-git commit -m "Your commit message"
 ```
 
 Or let Claude suggest a message:
+
 ```bash
 claude-git suggest
 claude-git commit
@@ -68,6 +75,7 @@ claude-git commit
 ## Commands
 
 ### `status`
+
 Show repository status with Claude Code context including modified files, staged files, and recent commits.
 
 ```bash
@@ -75,6 +83,7 @@ claude-git status [--repo PATH]
 ```
 
 ### `branch`
+
 Create a new feature branch with the `claude/` prefix for AI-assisted development.
 
 ```bash
@@ -82,6 +91,7 @@ claude-git branch <feature_name> [--repo PATH]
 ```
 
 ### `commit`
+
 Commit changes with Claude Code assistance. Auto-generates commit messages if not provided.
 
 ```bash
@@ -89,6 +99,7 @@ claude-git commit [--files FILE ...] [--message MESSAGE] [--repo PATH]
 ```
 
 ### `diff`
+
 Show git diff with beautiful syntax highlighting.
 
 ```bash
@@ -96,6 +107,7 @@ claude-git diff [--repo PATH] [--staged]
 ```
 
 ### `context`
+
 Get Claude Code context information for a specific file.
 
 ```bash
@@ -103,6 +115,7 @@ claude-git context <file_path> [--repo PATH]
 ```
 
 ### `suggest`
+
 Generate a commit message suggestion based on staged changes.
 
 ```bash
@@ -121,7 +134,7 @@ git:
 
 claude:
   context_lines: 50
-  max_file_size: 1048576  # 1MB
+  max_file_size: 1048576 # 1MB
 
 display:
   color: true
@@ -193,6 +206,7 @@ pytest tests/
 ### Code Style
 
 This project uses:
+
 - `black` for code formatting
 - `flake8` for linting
 - `mypy` for type checking
