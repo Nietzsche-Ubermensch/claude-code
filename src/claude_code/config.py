@@ -1,6 +1,5 @@
 """Configuration management for Claude Code Desktop."""
 
-import os
 import yaml
 from typing import Dict, Any, Optional
 from pathlib import Path

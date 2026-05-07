@@ -121,7 +121,7 @@ class ClaudeCodeIntegration:
             List of file paths.
         """
         status = self.git.get_status()
-        return status["modified"] + status["staged"]
+        return list(status["modified"]) + list(status["staged"])
 
     def get_code_context(self, file_path: str) -> Dict[str, Any]:
         """

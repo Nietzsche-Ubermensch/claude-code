@@ -2,7 +2,6 @@
 
 import click
 import sys
-from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -32,32 +31,33 @@ def status(repo):
             Panel(
                 f"[bold cyan]Repository:[/bold cyan] {context['repository']}\n"
                 f"[bold cyan]Branch:[/bold cyan] {context['branch']}\n"
-                f"[bold cyan]Status:[/bold cyan] {'Clean' if context['is_clean'] else 'Modified'}",
+                f"[bold cyan]Status:[/bold cyan] "
+                f"{'Clean' if context['is_clean'] else 'Modified'}",
                 title="Claude Code Status",
                 border_style="cyan",
             )
         )
 
         # Show modified files
-        if context['status']['modified']:
+        if context["status"]["modified"]:
             console.print("\n[bold yellow]Modified Files:[/bold yellow]")
-            for file in context['status']['modified']:
+            for file in context["status"]["modified"]:
                 console.print(f"  [yellow]M[/yellow] {file}")
 
         # Show staged files
-        if context['status']['staged']:
+        if context["status"]["staged"]:
             console.print("\n[bold green]Staged Files:[/bold green]")
-            for file in context['status']['staged']:
+            for file in context["status"]["staged"]:
                 console.print(f"  [green]A[/green] {file}")
 
         # Show untracked files
-        if context['status']['untracked']:
+        if context["status"]["untracked"]:
             console.print("\n[bold red]Untracked Files:[/bold red]")
-            for file in context['status']['untracked']:
+            for file in context["status"]["untracked"]:
                 console.print(f"  [red]?[/red] {file}")
 
         # Show recent commits
-        if context['recent_commits']:
+        if context["recent_commits"]:
             console.print("\n[bold]Recent Commits:[/bold]")
             table = Table(show_header=True, header_style="bold magenta")
             table.add_column("SHA", style="dim")
@@ -90,7 +90,10 @@ def branch(feature_name, repo):
     try:
         integration = ClaudeCodeIntegration(repo)
         branch_name = integration.create_feature_branch(feature_name)
-        console.print(f"[bold green]✓[/bold green] Created and checked out branch: [cyan]{branch_name}[/cyan]")
+        console.print(
+            f"[bold green]✓[/bold green] Created and checked out branch: "
+            f"[cyan]{branch_name}[/cyan]"
+        )
     except Exception as e:
         console.print(f"[bold red]Error:[/bold red] {str(e)}", style="red")
         sys.exit(1)
@@ -171,7 +174,9 @@ def context(file_path, repo):
         if ctx.get("untracked"):
             status_parts.append("[red]untracked[/red]")
 
-        status_str = ", ".join(status_parts) if status_parts else "[cyan]unchanged[/cyan]"
+        status_str = (
+            ", ".join(status_parts) if status_parts else "[cyan]unchanged[/cyan]"
+        )
 
         console.print(
             Panel(
