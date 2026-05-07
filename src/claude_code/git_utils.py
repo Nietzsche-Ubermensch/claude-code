@@ -1,11 +1,18 @@
 """Git utilities for Claude Code integration."""
 
 import os
-from typing import Optional, List, Dict, Any
-from pathlib import Path
-import git
-from git import Repo, GitCommandError
+from typing import Optional, List, Dict, Any, TypedDict
+from git import Repo
 from git.exc import InvalidGitRepositoryError, NoSuchPathError
+
+
+class RepoStatus(TypedDict):
+    """Repository status information."""
+
+    branch: str
+    modified: List[str]
+    staged: List[str]
+    untracked: List[str]
 
 
 class GitManager:
@@ -30,11 +37,11 @@ class GitManager:
 
     def get_modified_files(self) -> List[str]:
         """Get list of modified files in the working directory."""
-        return [item.a_path for item in self.repo.index.diff(None)]
+        return [item.a_path for item in self.repo.index.diff(None) if item.a_path]
 
     def get_staged_files(self) -> List[str]:
         """Get list of staged files."""
-        return [item.a_path for item in self.repo.index.diff("HEAD")]
+        return [item.a_path for item in self.repo.index.diff("HEAD") if item.a_path]
 
     def get_untracked_files(self) -> List[str]:
         """Get list of untracked files."""
@@ -98,8 +105,8 @@ class GitManager:
             Diff as string.
         """
         if staged:
-            return self.repo.git.diff("--cached")
-        return self.repo.git.diff()
+            return str(self.repo.git.diff("--cached"))
+        return str(self.repo.git.diff())
 
     def get_commit_history(self, max_count: int = 10) -> List[Dict[str, Any]]:
         """
@@ -123,19 +130,19 @@ class GitManager:
             )
         return commits
 
-    def get_status(self) -> Dict[str, List[str]]:
+    def get_status(self) -> RepoStatus:
         """
         Get repository status.
 
         Returns:
             Dictionary with status information.
         """
-        return {
-            "branch": self.get_current_branch(),
-            "modified": self.get_modified_files(),
-            "staged": self.get_staged_files(),
-            "untracked": self.get_untracked_files(),
-        }
+        return RepoStatus(
+            branch=self.get_current_branch(),
+            modified=self.get_modified_files(),
+            staged=self.get_staged_files(),
+            untracked=list(self.get_untracked_files()),
+        )
 
     def is_clean(self) -> bool:
         """Check if working directory is clean."""
